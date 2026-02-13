@@ -64,8 +64,8 @@ export default function EconomicEventHistory({ indicator, history, onClose }: Ec
                     borderRadius: '0.5rem',
                   }}
                   labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                  formatter={(value: number, name: string) => {
-                    return [value, name === 'actual' ? 'Actual' : 'Forecast'];
+                  formatter={(value?: number, name?: string) => {
+                    return value !== undefined ? [value, name === 'actual' ? 'Actual' : 'Forecast'] : ['--', name === 'actual' ? 'Actual' : 'Forecast'];
                   }}
                 />
                 <Legend />
