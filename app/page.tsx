@@ -19,25 +19,40 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const [cryptoRes, stockRes, newsRes] = await Promise.all([
+      const [cryptoRes, stockRes, newsRes] = await Promise.allSettled([
         fetch('/api/crypto-prices'),
         fetch('/api/stock-indexes'),
         fetch('/api/news'),
       ]);
 
-      const [cryptoData, stockData, newsData] = await Promise.all([
-        cryptoRes.json(),
-        stockRes.json(),
-        newsRes.json(),
-      ]);
+      // Process crypto prices
+      if (cryptoRes.status === 'fulfilled') {
+        const cryptoData = await cryptoRes.value.json();
+        setCryptoPrices(cryptoData);
+      } else {
+        console.error('Crypto API failed:', cryptoRes.reason);
+      }
 
-      setCryptoPrices(cryptoData);
-      setStockIndexes(stockData);
-      setNews(newsData);
+      // Process stock indexes
+      if (stockRes.status === 'fulfilled') {
+        const stockData = await stockRes.value.json();
+        setStockIndexes(stockData);
+      } else {
+        console.error('Stock API failed:', stockRes.reason);
+      }
+
+      // Process news
+      if (newsRes.status === 'fulfilled') {
+        const newsData = await newsRes.value.json();
+        setNews(newsData);
+      } else {
+        console.error('News API failed:', newsRes.reason);
+      }
+
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching data:', error);
-      setError('Failed to load data. Please try again.');
+      setError('Some data failed to load. Please try refreshing.');
     } finally {
       setLoading(false);
     }
@@ -61,18 +76,6 @@ export default function Home() {
     miningHoldings.bitmine.bitcoin * btcPrice +
     miningHoldings.bitmine.ethereum.current * ethPrice +
     miningHoldings.bitmine.totalValue;
-
-  // Loading state
-  if (loading && !cryptoPrices) {
-    return (
-      <main className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-16 h-16 animate-spin mx-auto text-orange-500 mb-4" />
-          <p className="text-xl">Loading dashboard...</p>
-        </div>
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-gray-900 text-white">

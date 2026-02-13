@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 
 interface StockIndexCardProps {
   name: string;
@@ -9,6 +9,7 @@ interface StockIndexCardProps {
   price: number;
   change: number;
   changePercent: number;
+  fallback?: boolean;
 }
 
 export default function StockIndexCard({
@@ -18,7 +19,31 @@ export default function StockIndexCard({
   price,
   change,
   changePercent,
+  fallback,
 }: StockIndexCardProps) {
+  if (fallback) {
+    return (
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 opacity-60">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-bold">{name}</h3>
+            <p className="text-sm text-gray-400">{country}</p>
+          </div>
+          <AlertTriangle className="w-5 h-5 text-yellow-500" />
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex justify-between items-baseline">
+            <span className="text-gray-400 text-sm">Status</span>
+            <span className="text-yellow-500 text-sm font-semibold">
+              Data unavailable
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const isPositive = change >= 0;
 
   return (
