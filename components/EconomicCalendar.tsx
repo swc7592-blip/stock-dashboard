@@ -56,7 +56,7 @@ export default function EconomicCalendar() {
               {period.charAt(0).toUpperCase() + period.slice(1)} Economic Calendar
             </h2>
             <span className="text-sm bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
-              High Importance Only (★★★)
+              ★★★ (3 stars only)
             </span>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function EconomicCalendar() {
               }`}
             >
               {tab.label}
-              </button>
+            </button>
           ))}
         </div>
 
@@ -85,7 +85,7 @@ export default function EconomicCalendar() {
             <p className="text-gray-400 mt-4">Loading economic calendar...</p>
           </div>
         ) : events.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {events.map((event) => (
               <EconomicEventCard
                 key={event.id}
@@ -98,7 +98,7 @@ export default function EconomicCalendar() {
           <div className="text-center py-12">
             <Calendar className="w-16 h-16 mx-auto text-gray-600 mb-4" />
             <p className="text-gray-400 text-lg">
-              No high importance events scheduled for this {period}
+              No 3-star events scheduled for this {period}
             </p>
             <p className="text-gray-500 text-sm mt-2">
               Check back later for upcoming events
