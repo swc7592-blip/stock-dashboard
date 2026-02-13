@@ -1,71 +1,173 @@
-import { Bitcoin, TrendingUp, Wallet } from 'lucide-react';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Bitcoin, TrendingUp, Wallet, Newspaper, RefreshCw, Loader2 } from 'lucide-react';
+import BitcoinHoldingsChart from '@/components/BitcoinHoldingsChart';
+import StockIndexCard from '@/components/StockIndexCard';
+import NewsCard from '@/components/NewsCard';
 import miningHoldings from '../data/mining-holdings.json';
 
 export default function Home() {
+  const [cryptoPrices, setCryptoPrices] = useState<any>(null);
+  const [stockIndexes, setStockIndexes] = useState<any[]>([]);
+  const [news, setNews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [cryptoRes, stockRes, newsRes] = await Promise.all([
+        fetch('/api/crypto-prices'),
+        fetch('/api/stock-indexes'),
+        fetch('/api/news'),
+      ]);
+
+      const [cryptoData, stockData, newsData] = await Promise.all([
+        cryptoRes.json(),
+        stockRes.json(),
+        newsRes.json(),
+      ]);
+
+      setCryptoPrices(cryptoData);
+      setStockIndexes(stockData);
+      setNews(newsData);
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+
+    // Auto-refresh every 5 minutes
+    const interval = setInterval(fetchData, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const btcPrice = cryptoPrices?.bitcoin?.usd || 0;
+  const btcChange = cryptoPrices?.bitcoin?.usd_24h_change || 0;
+  const ethPrice = cryptoPrices?.ethereum?.usd || 0;
+  const ethChange = cryptoPrices?.ethereum?.usd_24h_change || 0;
+
+  const mstrTotalValue = miningHoldings.microstrategy.bitcoin.current * btcPrice;
+  const bitmineTotalValue =
+    miningHoldings.bitmine.bitcoin * btcPrice +
+    miningHoldings.bitmine.ethereum.current * ethPrice +
+    miningHoldings.bitmine.totalValue;
+
   return (
     <main className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <header className="border-b border-gray-800 p-6">
-        <h1 className="text-3xl font-bold flex items-center gap-3">
-          <Bitcoin className="w-8 h-8 text-orange-500" />
-          Mining Company Treasury Dashboard
-        </h1>
-        <p className="text-gray-400 mt-2">Track Bitcoin & Ethereum holdings from major mining companies</p>
+      <header className="border-b border-gray-800 p-6 sticky top-0 bg-gray-900/95 backdrop-blur-sm z-10">
+        <div className="container mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-3">
+              <Bitcoin className="w-8 h-8 text-orange-500" />
+              Crypto & Stock Dashboard
+            </h1>
+            <p className="text-gray-400 mt-1">
+              Real-time tracking of mining companies, crypto prices, and stock indexes
+            </p>
+          </div>
+          <button
+            onClick={fetchData}
+            disabled={loading}
+            className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            Refresh
+          </button>
+        </div>
       </header>
 
       {/* Content */}
       <div className="container mx-auto p-6 space-y-8">
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Live Prices & Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Bitcoin Holdings</p>
-                <p className="text-3xl font-bold mt-1">
-                  {(miningHoldings.microstrategy.bitcoin.current + miningHoldings.bitmine.bitcoin).toLocaleString()} BTC
+                <p className="text-gray-400 text-sm">Bitcoin Price</p>
+                <p className="text-2xl font-bold text-orange-400 mt-1">
+                  ${btcPrice.toLocaleString()}
+                </p>
+                <p className={`text-sm mt-1 ${btcChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {btcChange >= 0 ? '+' : ''}{btcChange.toFixed(2)}% (24h)
                 </p>
               </div>
-              <Bitcoin className="w-12 h-12 text-orange-500 opacity-20" />
+              <Bitcoin className="w-10 h-10 text-orange-500 opacity-20" />
             </div>
           </div>
 
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Ethereum Holdings</p>
-                <p className="text-3xl font-bold mt-1">
-                  {miningHoldings.bitmine.ethereum.current.toLocaleString()} ETH
+                <p className="text-gray-400 text-sm">Ethereum Price</p>
+                <p className="text-2xl font-bold text-purple-400 mt-1">
+                  ${ethPrice.toLocaleString()}
+                </p>
+                <p className={`text-sm mt-1 ${ethChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {ethChange >= 0 ? '+' : ''}{ethChange.toFixed(2)}% (24h)
                 </p>
               </div>
-              <Wallet className="w-12 h-12 text-purple-500 opacity-20" />
+              <Wallet className="w-10 h-10 text-purple-500 opacity-20" />
             </div>
           </div>
 
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Companies Tracked</p>
-                <p className="text-3xl font-bold mt-1">2</p>
+                <p className="text-gray-400 text-sm">MSTR Total Value</p>
+                <p className="text-2xl font-bold text-blue-400 mt-1">
+                  ${(mstrTotalValue / 1000000000).toFixed(2)}B
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  714,644 BTC
+                </p>
               </div>
-              <TrendingUp className="w-12 h-12 text-green-500 opacity-20" />
+              <TrendingUp className="w-10 h-10 text-blue-500 opacity-20" />
+            </div>
+          </div>
+
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-400 text-sm">BitMine Total Value</p>
+                <p className="text-2xl font-bold text-green-400 mt-1">
+                  ${(bitmineTotalValue / 1000000000).toFixed(2)}B
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  4,325,739 ETH + 193 BTC
+                </p>
+              </div>
+              <TrendingUp className="w-10 h-10 text-green-500 opacity-20" />
             </div>
           </div>
         </div>
 
-        {/* MicroStrategy Card */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold">{miningHoldings.microstrategy.name}</h2>
-              <p className="text-gray-400">Symbol: {miningHoldings.microstrategy.symbol}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Last Updated</p>
-              <p className="font-semibold">{miningHoldings.microstrategy.bitcoin.date}</p>
-            </div>
+        {/* Stock Indexes */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6" />
+            Stock Market Indexes
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {stockIndexes.map((index) => (
+              <StockIndexCard key={index.symbol} {...index} />
+            ))}
           </div>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* MicroStrategy Section with Chart */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <h2 className="text-2xl font-bold mb-4">
+              {miningHoldings.microstrategy.name}
+            </h2>
             <div className="space-y-4">
               <div className="bg-gray-700/50 rounded-lg p-4">
                 <p className="text-gray-400 text-sm">Bitcoin Holdings</p>
@@ -74,6 +176,16 @@ export default function Home() {
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
                   {miningHoldings.microstrategy.bitcoin.percentageOfSupply}% of total supply
+                </p>
+              </div>
+
+              <div className="bg-gray-700/50 rounded-lg p-4">
+                <p className="text-gray-400 text-sm">Current Value</p>
+                <p className="text-3xl font-bold text-green-400 mt-1">
+                  ${(mstrTotalValue / 1000000000).toFixed(2)}B
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  @ ${btcPrice.toLocaleString()} per BTC
                 </p>
               </div>
 
@@ -97,41 +209,25 @@ export default function Home() {
                 </a>
               </div>
             </div>
-
-            <div className="bg-gray-700/50 rounded-lg p-4">
-              <p className="text-gray-400 text-sm mb-4">Bitcoin Holdings History</p>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {miningHoldings.microstrategy.history.slice(-10).map((entry, index) => (
-                  <div key={index} className="flex justify-between items-center text-sm">
-                    <span className="text-gray-400">{entry.date}</span>
-                    <span className="font-semibold text-orange-400">
-                      {entry.bitcoin.toLocaleString()} BTC
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
+
+          <BitcoinHoldingsChart history={miningHoldings.microstrategy.history} />
         </div>
 
-        {/* BitMine Card */}
+        {/* BitMine Section */}
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold">{miningHoldings.bitmine.name}</h2>
-              <p className="text-gray-400">Symbol: {miningHoldings.bitmine.symbol}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-gray-400">Last Updated</p>
-              <p className="font-semibold">{miningHoldings.bitmine.ethereum.date}</p>
-            </div>
-          </div>
+          <h2 className="text-2xl font-bold mb-6">
+            {miningHoldings.bitmine.name}
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-gray-700/50 rounded-lg p-4">
               <p className="text-gray-400 text-sm">Bitcoin</p>
               <p className="text-3xl font-bold text-orange-400 mt-1">
                 {miningHoldings.bitmine.bitcoin} BTC
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                ${(miningHoldings.bitmine.bitcoin * btcPrice).toLocaleString()}
               </p>
             </div>
 
@@ -140,12 +236,26 @@ export default function Home() {
               <p className="text-3xl font-bold text-purple-400 mt-1">
                 {miningHoldings.bitmine.ethereum.current.toLocaleString()} ETH
               </p>
+              <p className="text-sm text-gray-500 mt-1">
+                ${(miningHoldings.bitmine.ethereum.current * ethPrice).toLocaleString()}
+              </p>
             </div>
 
             <div className="bg-gray-700/50 rounded-lg p-4">
-              <p className="text-gray-400 text-sm">Total Treasury Value</p>
+              <p className="text-gray-400 text-sm">Total Crypto Value</p>
               <p className="text-3xl font-bold text-green-400 mt-1">
-                ${(miningHoldings.bitmine.totalValue / 1000000000).toFixed(2)}B
+                ${((miningHoldings.bitmine.bitcoin * btcPrice +
+                  miningHoldings.bitmine.ethereum.current * ethPrice) / 1000000000).toFixed(2)}B
+              </p>
+            </div>
+
+            <div className="bg-gray-700/50 rounded-lg p-4">
+              <p className="text-gray-400 text-sm">Total Treasury</p>
+              <p className="text-3xl font-bold text-blue-400 mt-1">
+                ${(bitmineTotalValue / 1000000000).toFixed(2)}B
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Incl. cash & investments
               </p>
             </div>
           </div>
@@ -170,49 +280,27 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Comparison Section */}
-        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-          <h2 className="text-2xl font-bold mb-6">Quick Comparison</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="text-left py-3 px-4">Company</th>
-                  <th className="text-right py-3 px-4">Bitcoin</th>
-                  <th className="text-right py-3 px-4">Ethereum</th>
-                  <th className="text-right py-3 px-4">Primary Asset</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b border-gray-700/50">
-                  <td className="py-3 px-4 font-semibold">MicroStrategy</td>
-                  <td className="text-right py-3 px-4 text-orange-400">
-                    {miningHoldings.microstrategy.bitcoin.current.toLocaleString()} BTC
-                  </td>
-                  <td className="text-right py-3 px-4 text-gray-500">-</td>
-                  <td className="text-right py-3 px-4">
-                    <span className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-xs">
-                      Bitcoin
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="py-3 px-4 font-semibold">BitMine Immersion</td>
-                  <td className="text-right py-3 px-4 text-orange-400">
-                    {miningHoldings.bitmine.bitcoin} BTC
-                  </td>
-                  <td className="text-right py-3 px-4 text-purple-400">
-                    {miningHoldings.bitmine.ethereum.current.toLocaleString()} ETH
-                  </td>
-                  <td className="text-right py-3 px-4">
-                    <span className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs">
-                      Ethereum
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+        {/* News Section */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Newspaper className="w-6 h-6" />
+            Latest News
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {news.map((item, index) => (
+              <NewsCard key={index} {...item} />
+            ))}
           </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-gray-500 text-sm py-8 border-t border-gray-800">
+          <p>
+            Last updated: {lastUpdate ? lastUpdate.toLocaleString() : 'Loading...'}
+          </p>
+          <p className="mt-2">
+            Data from CoinGecko, Yahoo Finance, Bitbo, and official company sources
+          </p>
         </div>
       </div>
     </main>

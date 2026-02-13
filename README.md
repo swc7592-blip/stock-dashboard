@@ -1,36 +1,168 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚀 Crypto & Stock Dashboard
 
-## Getting Started
+Real-time dashboard for tracking:
+- Mining company Bitcoin/Ethereum holdings
+- Live cryptocurrency prices
+- Stock market indexes (Korea & USA)
+- Latest crypto news
 
-First, run the development server:
+## ✨ Features
+
+### 1. 📊 Chart Visualization
+- MicroStrategy Bitcoin holdings history chart
+- Interactive line chart with tooltips
+- Time-series data visualization
+
+### 2. ⚡ Real-Time Price Updates
+- Live Bitcoin & Ethereum prices (CoinGecko API)
+- Auto-refresh every 5 minutes
+- 24h price change indicators
+- Total portfolio value calculation
+
+### 3. 📰 News Section
+- Latest crypto & mining news
+- Filtered for relevant topics
+- Links to full articles
+- Auto-refresh every 5 minutes
+
+### 4. 🔄 Auto Data Updates
+- Update script for mining company data
+- Easy to run manually or via cron
+- Preserves historical data
+
+### 5. 🇰🇷🇺🇸 Stock Market Indexes
+- **Korea:** KOSPI (^KS11), KOSDAQ (^KQ11)
+- **USA:** NASDAQ (^IXIC), S&P 500 (^GSPC), Dow Jones (^DJI)
+- Live price & change tracking
+- Color-coded indicators (green/red)
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Next.js 15 + React
+- **Styling:** Tailwind CSS
+- **Charts:** Recharts
+- **Data APIs:**
+  - CoinGecko (Crypto prices & News)
+  - Yahoo Finance (Stock indexes)
+  - Bitbo (MicroStrategy data)
+- **Icons:** Lucide React
+
+## 📦 Installation
+
+```bash
+npm install
+```
+
+## 🚀 Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+## 📝 Update Mining Data
 
-To learn more about Next.js, take a look at the following resources:
+Run the update script to fetch the latest holdings data:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+node scripts/update-mining-data.js
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Set up automatic updates (Cron)
 
-## Deploy on Vercel
+**Linux/Mac:**
+```bash
+# Edit crontab
+crontab -e
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Add this line to run daily at midnight
+0 0 * * * cd /path/to/stock-dashboard && node scripts/update-mining-data.js
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Windows (Task Scheduler):**
+- Create a new task
+- Set trigger to daily
+- Action: Run `node C:\path\to\stock-dashboard\scripts\update-mining-data.js`
+
+## 📁 Project Structure
+
+```
+stock-dashboard/
+├── app/
+│   ├── api/
+│   │   ├── crypto-prices/route.ts    # Crypto price API
+│   │   ├── stock-indexes/route.ts    # Stock index API
+│   │   └── news/route.ts             # News API
+│   ├── components/                    # React components
+│   │   ├── BitcoinHoldingsChart.tsx
+│   │   ├── StockIndexCard.tsx
+│   │   └── NewsCard.tsx
+│   ├── lib/
+│   │   └── utils.ts                  # Utility functions
+│   ├── ui/
+│   │   └── card.tsx                  # UI components
+│   ├── layout.tsx
+│   └── page.tsx                      # Main dashboard
+├── data/
+│   └── mining-holdings.json           # Mining company data
+├── scripts/
+│   └── update-mining-data.js         # Data update script
+└── public/
+```
+
+## 🔑 API Keys
+
+This project uses free APIs that don't require keys:
+- **CoinGecko:** Free tier (limited requests)
+- **Yahoo Finance:** Public endpoints
+
+## 📊 Data Sources
+
+- **MicroStrategy:** https://bitbo.io/treasuries/microstrategy/
+- **BitMine:** https://www.coingecko.com/en/treasuries/companies/bitmine
+- **Crypto Prices:** CoinGecko API
+- **Stock Indexes:** Yahoo Finance API
+- **News:** CoinGecko News API
+
+## 🌐 Deployment
+
+This project is optimized for Vercel:
+- Zero configuration deployment
+- Automatic caching with `revalidate`
+- Server-side rendering for SEO
+
+### Deploy to Vercel:
+```bash
+vercel deploy
+```
+
+## 🔄 API Caching
+
+- **Crypto prices:** 60 seconds
+- **Stock indexes:** Server-side fetch (no cache)
+- **News:** 300 seconds (5 minutes)
+
+## 📈 Future Enhancements
+
+- [ ] Add more mining companies (Marathon, Riot, CleanSpark)
+- [ ] Historical price charts
+- [ ] Portfolio comparison tool
+- [ ] Custom alerts/notifications
+- [ ] User authentication & personalized portfolios
+- [ ] Mobile app version
+
+## 📄 License
+
+MIT
+
+---
+
+Built with ❤️ by 엑스 (X) | Macro Economics Expert
