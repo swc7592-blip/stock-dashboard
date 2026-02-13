@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bitcoin, TrendingUp, Wallet, Newspaper, RefreshCw, Loader2 } from 'lucide-react';
+import { Calendar, RefreshCw, Loader2, Bitcoin, Wallet, TrendingUp, Newspaper } from 'lucide-react';
+import DailyStatusCard from '@/components/DailyStatusCard';
+import EconomicEventCard from '@/components/EconomicEventCard';
+import EconomicEventHistory from '@/components/EconomicEventHistory';
 import BitcoinHoldingsChart from '@/components/BitcoinHoldingsChart';
 import StockIndexCard from '@/components/StockIndexCard';
 import NewsCard from '@/components/NewsCard';
-import EconomicCalendar from '@/components/EconomicCalendar';
 import miningHoldings from '../data/mining-holdings.json';
 
 export default function Home() {
@@ -89,7 +91,7 @@ export default function Home() {
               Crypto & Stock Dashboard
             </h1>
             <p className="text-gray-400 mt-1">
-              Real-time tracking of mining companies, crypto prices, stock indexes, and economic indicators
+              Real-time tracking of economic indicators, crypto prices, and stock indexes
             </p>
           </div>
           <button
@@ -114,38 +116,39 @@ export default function Home() {
 
       {/* Content */}
       <div className="container mx-auto p-6 space-y-8">
-        {/* Live Prices & Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Bitcoin Price</p>
-                <p className="text-2xl font-bold text-orange-400 mt-1">
-                  ${btcPrice.toLocaleString()}
-                </p>
-                <p className={`text-sm mt-1 ${btcChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {btcChange >= 0 ? '+' : ''}{btcChange.toFixed(2)}% (24h)
-                </p>
-              </div>
-              <Bitcoin className="w-10 h-10 text-orange-500 opacity-20" />
-            </div>
-          </div>
+        {/* Economic Calendar - TOP SECTION */}
+        <EconomicCalendar />
 
-          <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Ethereum Price</p>
-                <p className="text-2xl font-bold text-purple-400 mt-1">
-                  ${ethPrice.toLocaleString()}
-                </p>
-                <p className={`text-sm mt-1 ${ethChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {ethChange >= 0 ? '+' : ''}{ethChange.toFixed(2)}% (24h)
-                </p>
-              </div>
-              <Wallet className="w-10 h-10 text-purple-500 opacity-20" />
-            </div>
+        {/* Daily Status Cards - SECOND SECTION */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6" />
+            Daily Market Status
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DailyStatusCard
+              name="Bitcoin"
+              symbol="BTC"
+              price={btcPrice}
+              change={btcPrice * (btcChange / 100)}
+              changePercent={btcChange}
+              currency="USD"
+              icon={<Bitcoin className="w-6 h-6 text-orange-500" />}
+            />
+            <DailyStatusCard
+              name="Ethereum"
+              symbol="ETH"
+              price={ethPrice}
+              change={ethPrice * (ethChange / 100)}
+              changePercent={ethChange}
+              currency="USD"
+              icon={<Wallet className="w-6 h-6 text-purple-500" />}
+            />
           </div>
+        </div>
 
+        {/* Live Prices & Stats - THIRD SECTION */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
             <div className="flex items-center justify-between">
               <div>
@@ -157,7 +160,7 @@ export default function Home() {
                   714,644 BTC
                 </p>
               </div>
-              <TrendingUp className="w-10 h-10 text-blue-500 opacity-20" />
+              <Bitcoin className="w-10 h-10 text-blue-500 opacity-20" />
             </div>
           </div>
 
@@ -177,7 +180,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Stock Indexes */}
+        {/* Stock Indexes - FOURTH SECTION */}
         {stockIndexes.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -192,10 +195,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Economic Calendar */}
-        <EconomicCalendar />
-
-        {/* MicroStrategy Section with Chart */}
+        {/* MicroStrategy Section with Chart - FIFTH SECTION */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
             <h2 className="text-2xl font-bold mb-4">
@@ -247,7 +247,7 @@ export default function Home() {
           <BitcoinHoldingsChart history={miningHoldings.microstrategy.history} />
         </div>
 
-        {/* BitMine Section */}
+        {/* BitMine Section - SIXTH SECTION */}
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
           <h2 className="text-2xl font-bold mb-6">
             {miningHoldings.bitmine.name}
@@ -313,7 +313,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* News Section */}
+        {/* News Section - SEVENTH SECTION */}
         {news.length > 0 && (
           <div>
             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
@@ -339,5 +339,123 @@ export default function Home() {
         </div>
       </div>
     </main>
+  );
+}
+
+// Separate component for Economic Calendar
+function EconomicCalendar() {
+  const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [eventHistory, setEventHistory] = useState<any>(null);
+
+  const fetchEvents = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/economic-calendar?period=${period}`);
+      const data = await response.json();
+      setEvents(data.events || []);
+    } catch (error) {
+      console.error('Error fetching economic calendar:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [period]);
+
+  const handleEventClick = async (eventName: string) => {
+    try {
+      const response = await fetch(`/api/economic-calendar?indicator=${encodeURIComponent(eventName)}`);
+      const data = await response.json();
+      setSelectedEvent(eventName);
+      setEventHistory(data);
+    } catch (error) {
+      console.error('Error fetching event history:', error);
+    }
+  };
+
+  const tabs = [
+    { id: 'daily' as const, label: 'Daily' },
+    { id: 'weekly' as const, label: 'Weekly' },
+    { id: 'monthly' as const, label: 'Monthly' },
+  ];
+
+  return (
+    <>
+      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Calendar className="w-6 h-6 text-blue-500" />
+            <h2 className="text-2xl font-bold">
+              {period.charAt(0).toUpperCase() + period.slice(1)} Economic Calendar
+            </h2>
+            <span className="text-sm bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded">
+              High Importance Only (★★★)
+            </span>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setPeriod(tab.id)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                period === tab.id
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="text-center py-12">
+            <Calendar className="w-8 h-8 animate-pulse mx-auto text-blue-500" />
+            <p className="text-gray-400 mt-4">Loading economic calendar...</p>
+          </div>
+        ) : events.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {events.map((event) => (
+              <EconomicEventCard
+                key={event.id}
+                {...event}
+                onClick={() => handleEventClick(event.name)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Calendar className="w-16 h-16 mx-auto text-gray-600 mb-4" />
+            <p className="text-gray-400 text-lg">
+              No high importance events scheduled for this {period}
+            </p>
+            <p className="text-gray-500 text-sm mt-2">
+              Check back later for upcoming events
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* History Modal */}
+      {selectedEvent && eventHistory && (
+        <EconomicEventHistory
+          indicator={selectedEvent}
+          history={eventHistory.history || []}
+          onClose={() => {
+            setSelectedEvent(null);
+            setEventHistory(null);
+          }}
+        />
+      )}
+    </>
   );
 }

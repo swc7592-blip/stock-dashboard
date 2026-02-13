@@ -1,9 +1,12 @@
 'use client';
 
+import { TrendingUp, TrendingDown, AlertTriangle, Clock } from 'lucide-react';
+
 interface EconomicEventCardProps {
   name: string;
   date: string;
   time: string;
+  timeKST: string; // 한국 시간
   importance: 'high' | 'medium' | 'low';
   currency: string;
   previous: string;
@@ -16,6 +19,7 @@ export default function EconomicEventCard({
   name,
   date,
   time,
+  timeKST,
   importance,
   currency,
   previous,
@@ -40,6 +44,16 @@ export default function EconomicEventCard({
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  // Format Korean time (just show time part)
+  const formatKST = (timeKST: string) => {
+    const parts = timeKST.split(' ');
+    if (parts.length >= 2) {
+      const timePart = parts[1]; // "04:30" from "2026-02-14 04:30"
+      return `${timePart} KST`;
+    }
+    return timeKST;
+  };
+
   return (
     <div
       onClick={onClick}
@@ -53,11 +67,14 @@ export default function EconomicEventCard({
               {importanceStars[importance]}
             </span>
           </div>
-          <h3 className="text-lg font-bold text-white">{name}</h3>
+          <h3 className="text-base font-bold text-white">{name}</h3>
         </div>
         <div className="text-right ml-4">
-          <p className="text-sm text-gray-400">{formatDisplayDate(date)}</p>
-          <p className="text-2xl font-bold text-blue-400">{time}</p>
+          <p className="text-xs text-gray-400 flex items-center gap-1 justify-end">
+            <Clock className="w-3 h-3" />
+            KST
+          </p>
+          <p className="text-xl font-bold text-blue-400">{formatKST(timeKST)}</p>
         </div>
       </div>
 
