@@ -5,6 +5,7 @@ import { Bitcoin, TrendingUp, Wallet, Newspaper, RefreshCw, Loader2 } from 'luci
 import BitcoinHoldingsChart from '@/components/BitcoinHoldingsChart';
 import StockIndexCard from '@/components/StockIndexCard';
 import NewsCard from '@/components/NewsCard';
+import EconomicCalendar from '@/components/EconomicCalendar';
 import miningHoldings from '../data/mining-holdings.json';
 
 export default function Home() {
@@ -88,7 +89,7 @@ export default function Home() {
               Crypto & Stock Dashboard
             </h1>
             <p className="text-gray-400 mt-1">
-              Real-time tracking of mining companies, crypto prices, and stock indexes
+              Real-time tracking of mining companies, crypto prices, stock indexes, and economic indicators
             </p>
           </div>
           <button
@@ -190,6 +191,9 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Economic Calendar */}
+        <EconomicCalendar />
 
         {/* MicroStrategy Section with Chart */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
