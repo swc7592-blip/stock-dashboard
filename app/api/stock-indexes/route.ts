@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 import yahooFinance from 'yahoo-finance2';
 
+// @ts-ignore - yahoo-finance2 types are not fully compatible with strict mode
+type Quote = {
+  regularMarketPrice: number;
+  regularMarketChange: number;
+  regularMarketChangePercent: number;
+  regularMarketPreviousClose: number;
+};
+
 export async function GET() {
   try {
     const symbols = [
@@ -14,15 +22,15 @@ export async function GET() {
     const results = await Promise.all(
       symbols.map(async (item) => {
         try {
-          const quote = await yahooFinance.quote(item.symbol);
+          const quote = await yahooFinance.quote(item.symbol) as Quote;
           return {
             symbol: item.symbol,
             name: item.name,
             country: item.country,
-            price: quote.regularMarketPrice,
-            change: quote.regularMarketChange,
-            changePercent: quote.regularMarketChangePercent,
-            previousClose: quote.regularMarketPreviousClose,
+            price: quote.regularMarketPrice || 0,
+            change: quote.regularMarketChange || 0,
+            changePercent: quote.regularMarketChangePercent || 0,
+            previousClose: quote.regularMarketPreviousClose || 0,
           };
         } catch (error) {
           console.error(`Error fetching ${item.symbol}:`, error);
@@ -31,7 +39,7 @@ export async function GET() {
       })
     );
 
-    const filteredResults = results.filter((r) => r !== null);
+    const filteredResults = results.filter((r): r is NonNullable<typeof r> => r !== null);
 
     return NextResponse.json(filteredResults);
   } catch (error) {

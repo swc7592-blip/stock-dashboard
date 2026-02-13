@@ -36,7 +36,7 @@ export default function BitcoinHoldingsChart({ history }: BitcoinHoldingsChartPr
               borderRadius: '0.5rem',
             }}
             labelFormatter={(value) => new Date(value).toLocaleDateString()}
-            formatter={(value: number) => [value.toLocaleString() + ' BTC', 'Holdings']}
+            formatter={(value) => [value ? value.toLocaleString() + ' BTC' : '0 BTC', 'Holdings']}
           />
           <Legend />
           <Line
