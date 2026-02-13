@@ -22,12 +22,12 @@ export async function GET() {
     const results = await Promise.all(
       symbols.map(async (item) => {
         try {
-          // Use public Yahoo Finance API
+          // Use Yahoo Finance public API with index symbols
           const response = await fetch(
-            `https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?interval=1d&range=1d`,
+            `https://query1.finance.yahoo.com/v8/finance/chart/${item.symbol}?interval=1d&range=2d`,
             {
               headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
               },
               // Timeout after 10 seconds
               signal: AbortSignal.timeout(10000),
@@ -39,23 +39,37 @@ export async function GET() {
           }
 
           const data = await response.json();
+
+          // Check if we have valid data
+          if (!data.chart?.result?.[0]) {
+            throw new Error('No data returned');
+          }
+
           const result = data.chart.result[0];
           const meta = result.meta;
-          const quote = result.indicators.quote[0];
+          const quotes = result.indicators?.quote?.[0];
 
-          const price = meta.regularMarketPrice || 0;
-          const previousClose = meta.previousClose || 0;
-          const change = price - previousClose;
+          if (!meta || !quotes || !quotes.close) {
+            throw new Error('Missing meta or quote data');
+          }
+
+          // Get the last two data points to calculate daily change
+          const closes = quotes.close.filter((c: number | null) => c !== null);
+          const previousClose = closes.length > 1 ? closes[closes.length - 2] : meta.previousClose;
+          const currentPrice = closes[closes.length - 1] || meta.regularMarketPrice;
+
+          // Calculate change and percentage
+          const change = currentPrice - previousClose;
           const changePercent = previousClose > 0 ? (change / previousClose) * 100 : 0;
 
           return {
             symbol: item.symbol,
             name: item.name,
             country: item.country,
-            price,
-            change,
-            changePercent,
-            previousClose,
+            price: Number(currentPrice.toFixed(2)),
+            change: Number(change.toFixed(2)),
+            changePercent: Number(changePercent.toFixed(2)),
+            previousClose: Number(previousClose.toFixed(2)),
           };
         } catch (error) {
           console.error(`Error fetching ${item.symbol}:`, error);

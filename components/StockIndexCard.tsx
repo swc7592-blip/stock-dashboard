@@ -45,6 +45,8 @@ export default function StockIndexCard({
   }
 
   const isPositive = change >= 0;
+  const displayChange = isPositive ? `+${change.toFixed(2)}` : change.toFixed(2);
+  const displayPercent = isPositive ? `+${changePercent.toFixed(2)}` : changePercent.toFixed(2);
 
   return (
     <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition-colors">
@@ -71,7 +73,7 @@ export default function StockIndexCard({
               <TrendingDown className="w-4 h-4 text-red-500" />
             )}
             <span className={`font-semibold ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-              {isPositive ? '+' : ''}{change.toFixed(2)} ({isPositive ? '+' : ''}{changePercent.toFixed(2)}%)
+              {displayChange} ({displayPercent}%)
             </span>
           </div>
         </div>
