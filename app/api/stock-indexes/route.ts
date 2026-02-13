@@ -34,15 +34,35 @@ export async function GET() {
           };
         } catch (error) {
           console.error(`Error fetching ${item.symbol}:`, error);
+          // Return null but don't fail the entire request
           return null;
         }
       })
     );
 
+    // Filter out null values
     const filteredResults = results.filter((r): r is NonNullable<typeof r> => r !== null);
+
+    // If all failed, return error message
+    if (filteredResults.length === 0) {
+      return NextResponse.json({
+        error: 'Unable to fetch stock data at this time',
+        data: symbols.map((item) => ({
+          symbol: item.symbol,
+          name: item.name,
+          country: item.country,
+          price: 0,
+          change: 0,
+          changePercent: 0,
+          previousClose: 0,
+          error: true,
+        }))
+      }, { status: 200 });
+    }
 
     return NextResponse.json(filteredResults);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch stock indexes' }, { status: 500 });
+    console.error('Stock indexes API error:', error);
+    return NextResponse.json({ error: 'Failed to fetch stock indexes', details: String(error) }, { status: 500 });
   }
 }

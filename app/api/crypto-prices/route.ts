@@ -9,10 +9,19 @@ export async function GET() {
       }
     );
 
-    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(`CoinGecko API failed: ${response.status}`);
+    }
 
+    const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch crypto prices' }, { status: 500 });
+    console.error('Crypto prices API error:', error);
+    // Return cached data or default values on error
+    return NextResponse.json({
+      bitcoin: { usd: 0, usd_24h_change: 0, krw: 0, krw_24h_change: 0 },
+      ethereum: { usd: 0, usd_24h_change: 0, krw: 0, krw_24h_change: 0 },
+      error: 'Failed to fetch crypto prices',
+    }, { status: 200 });
   }
 }

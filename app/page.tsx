@@ -13,9 +13,11 @@ export default function Home() {
   const [news, setNews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [cryptoRes, stockRes, newsRes] = await Promise.all([
         fetch('/api/crypto-prices'),
@@ -35,6 +37,7 @@ export default function Home() {
       setLastUpdate(new Date());
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError('Failed to load data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -58,6 +61,18 @@ export default function Home() {
     miningHoldings.bitmine.bitcoin * btcPrice +
     miningHoldings.bitmine.ethereum.current * ethPrice +
     miningHoldings.bitmine.totalValue;
+
+  // Loading state
+  if (loading && !cryptoPrices) {
+    return (
+      <main className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 animate-spin mx-auto text-orange-500 mb-4" />
+          <p className="text-xl">Loading dashboard...</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-gray-900 text-white">
@@ -83,6 +98,15 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      {/* Error Message */}
+      {error && (
+        <div className="container mx-auto mt-6">
+          <div className="bg-red-900/20 border border-red-700 text-red-400 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="container mx-auto p-6 space-y-8">
@@ -150,17 +174,19 @@ export default function Home() {
         </div>
 
         {/* Stock Indexes */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <TrendingUp className="w-6 h-6" />
-            Stock Market Indexes
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {stockIndexes.map((index) => (
-              <StockIndexCard key={index.symbol} {...index} />
-            ))}
+        {stockIndexes.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <TrendingUp className="w-6 h-6" />
+              Stock Market Indexes
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {stockIndexes.map((index) => (
+                <StockIndexCard key={index.symbol} {...index} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* MicroStrategy Section with Chart */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -281,17 +307,19 @@ export default function Home() {
         </div>
 
         {/* News Section */}
-        <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Newspaper className="w-6 h-6" />
-            Latest News
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {news.map((item, index) => (
-              <NewsCard key={index} {...item} />
-            ))}
+        {news.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+              <Newspaper className="w-6 h-6" />
+              Latest News
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {news.map((item, index) => (
+                <NewsCard key={index} {...item} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Footer */}
         <div className="text-center text-gray-500 text-sm py-8 border-t border-gray-800">
