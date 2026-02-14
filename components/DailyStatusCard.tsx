@@ -10,6 +10,7 @@ interface DailyStatusCardProps {
   changePercent: number;
   currency: string;
   icon?: React.ReactNode;
+  lastUpdate?: Date;
 }
 
 export default function DailyStatusCard({
@@ -20,6 +21,7 @@ export default function DailyStatusCard({
   changePercent,
   currency,
   icon,
+  lastUpdate,
 }: DailyStatusCardProps) {
   const isPositive = change >= 0;
   const displayChange = isPositive ? `+${change.toFixed(2)}` : change.toFixed(2);
@@ -57,6 +59,15 @@ export default function DailyStatusCard({
             </span>
           </div>
         </div>
+
+        {lastUpdate && (
+          <div className="flex justify-between items-center pt-2 border-t border-gray-700">
+            <span className="text-gray-400 text-xs">Updated</span>
+            <span className="text-xs text-gray-500">
+              {lastUpdate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

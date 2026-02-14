@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, TrendingDown, AlertTriangle, Clock } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, Clock, BarChart3 } from 'lucide-react';
 
 interface EconomicEventCardProps {
   name: string;
@@ -84,6 +84,15 @@ export default function EconomicEventCard({
           </p>
         </div>
       </div>
+
+      {onClick && (
+        <div className="mt-4 pt-3 border-t border-gray-700">
+          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            View {name} History
+          </button>
+        </div>
+      )}
     </div>
   );
 }

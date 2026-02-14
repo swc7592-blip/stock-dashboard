@@ -10,6 +10,7 @@ interface StockIndexCardProps {
   change: number;
   changePercent: number;
   fallback?: boolean;
+  lastUpdate?: Date;
 }
 
 export default function StockIndexCard({
@@ -20,6 +21,7 @@ export default function StockIndexCard({
   change,
   changePercent,
   fallback,
+  lastUpdate,
 }: StockIndexCardProps) {
   if (fallback) {
     return (
@@ -77,6 +79,15 @@ export default function StockIndexCard({
             </span>
           </div>
         </div>
+
+        {lastUpdate && (
+          <div className="flex justify-between items-center pt-2 border-t border-gray-700">
+            <span className="text-gray-400 text-xs">Updated</span>
+            <span className="text-xs text-gray-500">
+              {lastUpdate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import BitcoinHoldingsChart from '@/components/BitcoinHoldingsChart';
 import StockIndexCard from '@/components/StockIndexCard';
 import NewsCard from '@/components/NewsCard';
 import miningHoldings from '../data/mining-holdings.json';
+import { Clock } from 'lucide-react';
 
 export default function Home() {
   const [cryptoPrices, setCryptoPrices] = useState<any>(null);
@@ -93,6 +94,17 @@ export default function Home() {
             <p className="text-gray-400 mt-1">
               Real-time tracking of economic indicators, crypto prices, and stock indexes
             </p>
+            <div className="flex items-center gap-4 mt-2 text-sm">
+              <p className="text-blue-400">
+                📅 Current Date: {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+              </p>
+              {lastUpdate && (
+                <p className="text-gray-400 flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  Last Update: {lastUpdate.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                </p>
+              )}
+            </div>
           </div>
           <button
             onClick={fetchData}
@@ -134,6 +146,7 @@ export default function Home() {
               changePercent={btcChange}
               currency="USD"
               icon={<Bitcoin className="w-6 h-6 text-orange-500" />}
+              lastUpdate={lastUpdate}
             />
             <DailyStatusCard
               name="Ethereum"
@@ -143,6 +156,7 @@ export default function Home() {
               changePercent={ethChange}
               currency="USD"
               icon={<Wallet className="w-6 h-6 text-purple-500" />}
+              lastUpdate={lastUpdate}
             />
           </div>
         </div>
@@ -189,7 +203,7 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {stockIndexes.map((index) => (
-                <StockIndexCard key={index.symbol} {...index} />
+                <StockIndexCard key={index.symbol} {...index} lastUpdate={lastUpdate} />
               ))}
             </div>
           </div>
