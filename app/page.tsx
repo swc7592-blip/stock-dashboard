@@ -89,7 +89,7 @@ export default function Home() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
               <Bitcoin className="w-8 h-8 text-orange-500" />
-              Crypto & Stock Dashboard
+              Woo Chang - Crypto & Stock Dashboard
             </h1>
             <p className="text-gray-400 mt-1">
               Real-time tracking of economic indicators, crypto prices, and stock indexes
