@@ -156,7 +156,7 @@ export default function Home() {
               changePercent={ethChange}
               currency="USD"
               icon={<Wallet className="w-6 h-6 text-purple-500" />}
-              lastUpdate={lastUpdate}
+              lastUpdate={lastUpdate || undefined}
             />
           </div>
         </div>
