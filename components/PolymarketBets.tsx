@@ -155,7 +155,7 @@ export default function PolymarketBets() {
                 <div className="flex-1 bg-gray-900 rounded-lg h-2 overflow-hidden">
                   <div 
                     className="h-full bg-gradient-to-r from-red-500 to-red-400 rounded-full transition-all"
-                    style={{ width: `${100 - bet.yes}%` }}
+                    style={{ width: `${100 - Number(bet.yes)}%` }}
                   />
                 </div>
                 <span className="text-xs text-gray-400">No</span>
