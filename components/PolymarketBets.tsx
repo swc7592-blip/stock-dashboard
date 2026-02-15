@@ -134,7 +134,7 @@ export default function PolymarketBets() {
                 </div>
                 <div>
                   <p className="text-gray-400 text-xs mb-1">Yes Vote</p>
-                  <p className={`font-semibold ${bet.yes > 60 ? 'text-green-400' : 'text-yellow-400'}`}>
+                  <p className={`font-semibold ${Number(bet.yes) > 60 ? 'text-green-400' : 'text-yellow-400'}`}>
                     {bet.yes}%
                   </p>
                 </div>
