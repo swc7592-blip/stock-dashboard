@@ -271,7 +271,7 @@ const generateEconomicEvents = (): EconomicEvent[] => {
       date: eventDate,
       time: pattern.time,
       timeKST: eventTimeKST,
-      importance: pattern.importance,
+      importance: pattern.importance as "high" | "medium" | "low",
       currency: pattern.currency,
       previous: pattern.previous,
       forecast: pattern.forecast,
