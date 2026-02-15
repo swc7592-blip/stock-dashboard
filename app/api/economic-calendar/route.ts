@@ -29,7 +29,7 @@ const convertESTToKST = (eventDate: string, estTime: string): string => {
     dateObj.getUTCDate(),
     hours - 5,
     minutes,
-    0, 0, 0
+    0, 0
   ));
   
   // Add 14 hours to get KST (UTC+9, difference is +14 hours)
