@@ -146,7 +146,7 @@ export default function Home() {
               changePercent={btcChange}
               currency="USD"
               icon={<Bitcoin className="w-6 h-6 text-orange-500" />}
-              lastUpdate={lastUpdate}
+              lastUpdate={lastUpdate || undefined}
             />
             <DailyStatusCard
               name="Ethereum"
