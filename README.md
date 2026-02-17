@@ -5,6 +5,7 @@ Real-time dashboard for tracking:
 - Live cryptocurrency prices
 - Stock market indexes (Korea & USA)
 - Latest crypto news
+- Economic calendar with real-time data
 
 ## ✨ Features
 
@@ -35,6 +36,14 @@ Real-time dashboard for tracking:
 - **USA:** NASDAQ (^IXIC), S&P 500 (^GSPC), Dow Jones (^DJI)
 - Live price & change tracking
 - Color-coded indicators (green/red)
+
+### 6. 📅 Economic Calendar
+- Daily, Weekly, and Monthly views
+- Real-time economic data from FRED API (Federal Reserve)
+- Actual values for past events (when FRED API is configured)
+- Historical data with charts
+- 3-star (high importance) events only
+- Time zones displayed in KST (Korea Standard Time)
 
 ## 🛠️ Tech Stack
 
@@ -100,11 +109,17 @@ stock-dashboard/
 │   ├── api/
 │   │   ├── crypto-prices/route.ts    # Crypto price API
 │   │   ├── stock-indexes/route.ts    # Stock index API
-│   │   └── news/route.ts             # News API
+│   │   ├── news/route.ts             # News API
+│   │   └── economic-calendar/
+│   │       ├── route.ts              # Economic calendar API (main)
+│   │       └── fred.ts               # FRED API integration
 │   ├── components/                    # React components
 │   │   ├── BitcoinHoldingsChart.tsx
 │   │   ├── StockIndexCard.tsx
-│   │   └── NewsCard.tsx
+│   │   ├── NewsCard.tsx
+│   │   ├── EconomicCalendar.tsx      # Economic calendar component
+│   │   ├── EconomicEventCard.tsx     # Individual event card
+│   │   └── EconomicEventHistory.tsx  # Event history modal
 │   ├── lib/
 │   │   └── utils.ts                  # Utility functions
 │   ├── ui/
@@ -115,12 +130,24 @@ stock-dashboard/
 │   └── mining-holdings.json           # Mining company data
 ├── scripts/
 │   └── update-mining-data.js         # Data update script
+├── .env.local.example                 # Environment variables template
 └── public/
 ```
 
 ## 🔑 API Keys
 
-This project uses free APIs that don't require keys:
+### Optional APIs (Recommended for Full Features)
+
+**FRED API (Federal Reserve Economic Data) - Recommended**
+- Get your free API key: https://fred.stlouisfed.org/docs/api/api_key.html
+- Free tier: 120 requests per minute
+- Add to `.env.local`:
+  ```
+  FRED_API_KEY=your_api_key_here
+  ```
+- Provides real economic data for the Economic Calendar
+
+### Free APIs (No Key Required)
 - **CoinGecko:** Free tier (limited requests)
 - **Yahoo Finance:** Public endpoints
 
@@ -131,6 +158,7 @@ This project uses free APIs that don't require keys:
 - **Crypto Prices:** CoinGecko API
 - **Stock Indexes:** Yahoo Finance API
 - **News:** CoinGecko News API
+- **Economic Calendar:** FRED API (St. Louis Fed) or mock data fallback
 
 ## 🌐 Deployment
 
@@ -158,6 +186,9 @@ vercel deploy
 - [ ] Custom alerts/notifications
 - [ ] User authentication & personalized portfolios
 - [ ] Mobile app version
+- [ ] Economic calendar alerts & notifications
+- [ ] More economic indicators (global markets)
+- [ ] Integration with Trading Economics API for global data
 
 ## 📄 License
 

@@ -1,4 +1,24 @@
 import { NextResponse } from 'next/server';
+import { getEconomicIndicatorHistory, getLatestIndicatorValue, isFredApiAvailable } from './fred';
+
+/**
+ * ECONOMIC CALENDAR API
+ *
+ * This endpoint provides economic calendar data with the following structure:
+ * - Daily: Today's events only
+ * - Weekly: Past 7 days + Next 7 days (includes past indicators with actual values)
+ * - Monthly: Past 30 days + Next 30 days (includes past indicators with actual values)
+ *
+ * API INTEGRATION:
+ * This endpoint now uses the FRED (Federal Reserve Economic Data) API for real economic data.
+ * To enable FRED API integration:
+ * 1. Get a free API key: https://fred.stlouisfed.org/docs/api/api_key.html
+ * 2. Add to .env.local: FRED_API_KEY=your_api_key_here
+ *
+ * If FRED_API_KEY is not set, the endpoint falls back to mock data.
+ *
+ * FRED API free tier: 120 requests per minute
+ */
 
 interface EconomicEvent {
   id: string;
@@ -66,8 +86,39 @@ const addWeeks = (dateStr: string, weeks: number): string => {
 };
 
 // Generate dynamic economic events
-const generateEconomicEvents = (): EconomicEvent[] => {
+const generateEconomicEvents = async (): Promise<EconomicEvent[]> => {
   const today = getToday();
+
+  // Helper to get actual value from mock history for past events (fallback)
+  const getActualFromHistory = (name: string, eventDate: string): string | null => {
+    const history = MOCK_HISTORY[name];
+    if (!history) return null;
+
+    // Find the closest match in history
+    const eventDateObj = new Date(eventDate);
+    const closest = history.find(h => {
+      const hDate = new Date(h.date);
+      const diffDays = Math.abs((hDate.getTime() - eventDateObj.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays <= 7; // Within 7 days
+    });
+
+    return closest?.actual || null;
+  };
+
+  // Helper to get actual value from FRED API for past events
+  const getActualFromFRED = async (name: string): Promise<{ actual: string | null; date: string | null }> => {
+    if (!isFredApiAvailable()) {
+      return { actual: null, date: null };
+    }
+
+    try {
+      const result = await getLatestIndicatorValue(name);
+      return result;
+    } catch (error) {
+      console.error(`Error fetching from FRED for ${name}:`, error);
+      return { actual: null, date: null };
+    }
+  };
 
   // Define indicator patterns with their release schedules
   // dayOffset: 0 = today, 1 = tomorrow, -1 = yesterday, 7 = one week ago, etc.
@@ -75,7 +126,195 @@ const generateEconomicEvents = (): EconomicEvent[] => {
     {
       id: '1',
       name: 'Non-Farm Payrolls',
-      dayOffset: 0, // Today (1st Friday of the month)
+      dayOffset: -11, // 11 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '227K',
+      forecast: '180K',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '2',
+      name: 'Consumer Price Index (CPI)',
+      dayOffset: -3, // 3 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '0.4%',
+      forecast: '0.3%',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '3',
+      name: 'Producer Price Index (PPI)',
+      dayOffset: -33, // 33 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '0.3%',
+      forecast: '0.2%',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '4',
+      name: 'GDP',
+      dayOffset: -14, // 14 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '2.5%',
+      forecast: '2.4%',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '5',
+      name: 'GDP (YoY)',
+      dayOffset: -14, // 14 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '2.8%',
+      forecast: '2.7%',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '6',
+      name: 'Fed Interest Rate Decision',
+      dayOffset: -61, // 61 days ago
+      time: '14:00',
+      currency: 'USD',
+      previous: '5.25%',
+      forecast: '5.25%',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '7',
+      name: 'ISM Manufacturing PMI',
+      dayOffset: -45, // 45 days ago
+      time: '10:00',
+      currency: 'USD',
+      previous: '51.2',
+      forecast: '50.0',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '8',
+      name: 'ISM Services PMI',
+      dayOffset: -42, // 42 days ago
+      time: '10:00',
+      currency: 'USD',
+      previous: '52.0',
+      forecast: '52.5',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '9',
+      name: 'ADP Non-Farm Employment Change',
+      dayOffset: -41, // 41 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '227K',
+      forecast: '200K',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '10',
+      name: 'Retail Sales',
+      dayOffset: -33, // 33 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '4.2%',
+      forecast: '4.0%',
+      actual: null, // Will fetch from FRED
+      importance: 'medium',
+    },
+    {
+      id: '11',
+      name: 'Consumer Confidence',
+      dayOffset: -28, // 28 days ago
+      time: '10:00',
+      currency: 'USD',
+      previous: '102.0',
+      forecast: '104.0',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '12',
+      name: 'Michigan Consumer Sentiment',
+      dayOffset: -33, // 33 days ago
+      time: '10:00',
+      currency: 'USD',
+      previous: '79.0',
+      forecast: '80.0',
+      actual: null, // Will fetch from FRED
+      importance: 'medium',
+    },
+    {
+      id: '13',
+      name: 'Housing Starts',
+      dayOffset: -31, // 31 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '1.6M',
+      forecast: '1.5M',
+      actual: null, // Will fetch from FRED
+      importance: 'medium',
+    },
+    {
+      id: '14',
+      name: 'Building Permits',
+      dayOffset: -31, // 31 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '1.7M',
+      forecast: '1.5M',
+      actual: null, // Will fetch from FRED
+      importance: 'medium',
+    },
+    {
+      id: '15',
+      name: 'Initial Jobless Claims',
+      dayOffset: -34, // 34 days ago
+      time: '08:30',
+      currency: 'USD',
+      previous: '220K',
+      forecast: '215K',
+      actual: null, // Will fetch from FRED
+      importance: 'medium',
+    },
+    {
+      id: '16',
+      name: 'Federal Reserve Balance Sheet',
+      dayOffset: -59, // 59 days ago
+      time: '16:00',
+      currency: 'USD',
+      previous: '$7.5T',
+      forecast: '$7.4T',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    {
+      id: '17',
+      name: 'Core Retail Sales',
+      dayOffset: -32, // 32 days ago
+      time: '10:00',
+      currency: 'USD',
+      previous: '0.5%',
+      forecast: '0.4%',
+      actual: null, // Will fetch from FRED
+      importance: 'high',
+    },
+    // Upcoming events (no actual values yet)
+    {
+      id: '18',
+      name: 'Non-Farm Payrolls',
+      dayOffset: 4, // In 4 days
       time: '08:30',
       currency: 'USD',
       previous: '185K',
@@ -84,9 +323,9 @@ const generateEconomicEvents = (): EconomicEvent[] => {
       importance: 'high',
     },
     {
-      id: '2',
+      id: '19',
       name: 'Consumer Price Index (CPI)',
-      dayOffset: 0, // Today (around 2nd week of the month)
+      dayOffset: 25, // In 25 days
       time: '08:30',
       currency: 'USD',
       previous: '0.3%',
@@ -95,42 +334,9 @@ const generateEconomicEvents = (): EconomicEvent[] => {
       importance: 'high',
     },
     {
-      id: '3',
-      name: 'Producer Price Index (PPI)',
-      dayOffset: -14, // Two weeks ago
-      time: '08:30',
-      currency: 'USD',
-      previous: '0.2%',
-      forecast: '0.3%',
-      actual: '0.3%',
-      importance: 'high',
-    },
-    {
-      id: '4',
-      name: 'GDP',
-      dayOffset: 0, // Today (1st release)
-      time: '08:30',
-      currency: 'USD',
-      previous: '2.1%',
-      forecast: '2.3%',
-      actual: null,
-      importance: 'high',
-    },
-    {
-      id: '5',
-      name: 'GDP (YoY)',
-      dayOffset: 0, // Today
-      time: '08:30',
-      currency: 'USD',
-      previous: '2.5%',
-      forecast: '2.7%',
-      actual: null,
-      importance: 'high',
-    },
-    {
-      id: '6',
+      id: '20',
       name: 'Fed Interest Rate Decision',
-      dayOffset: 3, // In 3 days
+      dayOffset: 14, // In 14 days
       time: '14:00',
       currency: 'USD',
       previous: '5.25%',
@@ -138,146 +344,43 @@ const generateEconomicEvents = (): EconomicEvent[] => {
       actual: null,
       importance: 'high',
     },
-    {
-      id: '7',
-      name: 'ISM Manufacturing PMI',
-      dayOffset: 2, // Tomorrow
-      time: '10:00',
-      currency: 'USD',
-      previous: '50.0',
-      forecast: '50.5',
-      actual: null,
-      importance: 'high',
-    },
-    {
-      id: '8',
-      name: 'ISM Services PMI',
-      dayOffset: 3, // In 3 days
-      time: '10:00',
-      currency: 'USD',
-      previous: '52.5',
-      forecast: '53.0',
-      actual: null,
-      importance: 'high',
-    },
-    {
-      id: '9',
-      name: 'ADP Non-Farm Employment Change',
-      dayOffset: 4, // In 4 days
-      time: '08:30',
-      currency: 'USD',
-      previous: '185K',
-      forecast: '170K',
-      actual: null,
-      importance: 'high',
-    },
-    {
-      id: '10',
-      name: 'Retail Sales',
-      dayOffset: 3, // In 3 days
-      time: '08:30',
-      currency: 'USD',
-      previous: '4.0%',
-      forecast: '4.1%',
-      actual: null,
-      importance: 'medium',
-    },
-    {
-      id: '11',
-      name: 'Consumer Confidence',
-      dayOffset: 5, // In 5 days
-      time: '10:00',
-      currency: 'USD',
-      previous: '104.0',
-      forecast: '106.0',
-      actual: null,
-      importance: 'high',
-    },
-    {
-      id: '12',
-      name: 'Michigan Consumer Sentiment',
-      dayOffset: 2, // Tomorrow
-      time: '10:00',
-      currency: 'USD',
-      previous: '80.0',
-      forecast: '81.0',
-      actual: null,
-      importance: 'medium',
-    },
-    {
-      id: '13',
-      name: 'Housing Starts',
-      dayOffset: 4, // In 4 days
-      time: '08:30',
-      currency: 'USD',
-      previous: '1.4M',
-      forecast: '1.5M',
-      actual: null,
-      importance: 'medium',
-    },
-    {
-      id: '14',
-      name: 'Building Permits',
-      dayOffset: 4, // In 4 days
-      time: '08:30',
-      currency: 'USD',
-      previous: '1.5M',
-      forecast: '1.6M',
-      actual: null,
-      importance: 'medium',
-    },
-    {
-      id: '15',
-      name: 'Initial Jobless Claims',
-      dayOffset: 1, // Tomorrow
-      time: '08:30',
-      currency: 'USD',
-      previous: '210K',
-      forecast: '205K',
-      actual: null,
-      importance: 'medium',
-    },
-    {
-      id: '16',
-      name: 'Federal Reserve Balance Sheet',
-      dayOffset: 5, // In 5 days
-      time: '16:00',
-      currency: 'USD',
-      previous: '$7.4T',
-      forecast: '$7.5T',
-      actual: null,
-      importance: 'high',
-    },
-    {
-      id: '17',
-      name: 'Core Retail Sales',
-      dayOffset: 3, // In 3 days
-      time: '10:00',
-      currency: 'USD',
-      previous: '0.4%',
-      forecast: '0.5%',
-      actual: null,
-      importance: 'high',
-    },
   ];
 
-  return patterns.map((pattern) => {
-    const eventDate = addDays(today, pattern.dayOffset);
-    const eventTimeKST = convertESTToKST(eventDate, pattern.time);
+  // Fetch actual values from FRED API for past events
+  const eventsWithActual = await Promise.all(
+    patterns.map(async (pattern) => {
+      const eventDate = addDays(today, pattern.dayOffset);
+      const eventTimeKST = convertESTToKST(eventDate, pattern.time);
 
-    return {
-      id: pattern.id,
-      name: pattern.name,
-      date: eventDate,
-      time: pattern.time,
-      timeKST: eventTimeKST,
-      importance: pattern.importance as "high" | "medium" | "low",
-      currency: pattern.currency,
-      previous: pattern.previous,
-      forecast: pattern.forecast,
-      actual: pattern.actual,
-    };
-  });
+      let actual = pattern.actual;
+
+      // Only fetch from FRED for past events (dayOffset <= 0)
+      if (pattern.dayOffset <= 0 && isFredApiAvailable()) {
+        const fredData = await getActualFromFRED(pattern.name);
+        actual = fredData.actual;
+      }
+
+      // Fallback to mock history if FRED fails or not available
+      if (!actual) {
+        actual = getActualFromHistory(pattern.name, eventDate);
+      }
+
+      return {
+        id: pattern.id,
+        name: pattern.name,
+        date: eventDate,
+        time: pattern.time,
+        timeKST: eventTimeKST,
+        importance: pattern.importance,
+        currency: pattern.currency,
+        previous: pattern.previous,
+        forecast: pattern.forecast,
+        actual,
+      };
+    })
+  );
+
+  return eventsWithActual;
 };
 
 // Historical data for detailed view (mock data)
@@ -413,15 +516,27 @@ export async function GET(request: Request) {
 
   // If specific indicator is requested, return its history
   if (indicator) {
-    const history = MOCK_HISTORY[indicator] || [];
+    let history;
+
+    // Try FRED API first if available
+    if (isFredApiAvailable()) {
+      history = await getEconomicIndicatorHistory(indicator);
+    }
+
+    // Fallback to mock history
+    if (!history || history.length === 0) {
+      history = MOCK_HISTORY[indicator] || [];
+    }
+
     return NextResponse.json({
       indicator,
       history,
+      source: isFredApiAvailable() && history.length > 0 ? 'FRED API' : 'Mock Data',
     });
   }
 
-  // Generate events dynamically
-  const dynamicEvents = generateEconomicEvents();
+  // Generate events dynamically (now async for FRED integration)
+  const dynamicEvents = await generateEconomicEvents();
 
   // Filter for high importance (3-star)
   const highImportanceEvents = dynamicEvents.filter(
@@ -438,19 +553,23 @@ export async function GET(request: Request) {
       events = highImportanceEvents.filter((e) => e.date === today);
       break;
     case 'weekly':
-      // Events for the next 7 days
+      // Events for the past 7 days and next 7 days (total 14 days)
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
       const weekFromNow = new Date();
       weekFromNow.setDate(weekFromNow.getDate() + 7);
       events = highImportanceEvents.filter(
-        (e) => e.date >= today && e.date <= weekFromNow.toISOString().split('T')[0]
+        (e) => e.date >= weekAgo.toISOString().split('T')[0] && e.date <= weekFromNow.toISOString().split('T')[0]
       );
       break;
     case 'monthly':
-      // Events for the next 30 days
+      // Events for the past 30 days and next 30 days (total 60 days)
+      const monthAgo = new Date();
+      monthAgo.setDate(monthAgo.getDate() - 30);
       const monthFromNow = new Date();
       monthFromNow.setDate(monthFromNow.getDate() + 30);
       events = highImportanceEvents.filter(
-        (e) => e.date >= today && e.date <= monthFromNow.toISOString().split('T')[0]
+        (e) => e.date >= monthAgo.toISOString().split('T')[0] && e.date <= monthFromNow.toISOString().split('T')[0]
       );
       break;
     default:
@@ -462,5 +581,6 @@ export async function GET(request: Request) {
     events,
     count: events.length,
     generatedAt: new Date().toISOString(),
+    dataSource: isFredApiAvailable() ? 'FRED API' : 'Mock Data',
   });
 }
